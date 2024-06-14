@@ -1,0 +1,2 @@
+# redhat_update
+RedHat系で機能するアップデートシェルスクリプト

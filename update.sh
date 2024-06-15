@@ -6,6 +6,7 @@ start_time=$(date '+%Y-%m-%d %H:%M:%S')
 
 # 現在のバージョンと利用できるバージョンを表示する関数
 function display_versions() {
+    local package=$1
     if rpm -q $package > /dev/null 2>&1; then
         current_version=$(rpm -q --queryformat '%{VERSION}-%{RELEASE}\n' $package)
         available_version=$(yum check-update $package | grep $package | awk '{print $2}')
@@ -26,6 +27,7 @@ function display_versions() {
 
 # アップデートまたはインストールを行う関数
 function update_or_install_package() {
+    local package=$1
     if rpm -q $package > /dev/null 2>&1; then
         echo "アップデートを開始します..."
         start_update=$(date '+%Y-%m-%d %H:%M:%S')
@@ -57,6 +59,7 @@ function update_or_install_package() {
 
 # ログを保存する関数
 function save_log() {
+    local package=$1
     read -p "ログを保存するディレクトリを入力してください: " log_dir
     if [ ! -d "$log_dir" ]; then
         echo "ディレクトリが存在しません。"
@@ -80,23 +83,23 @@ function save_log() {
 }
 
 # メインスクリプト
+read -p "ログを保存しますか？ (yes/no): " save_log_input
+if [ "$save_log_input" == "yes" ]; then
+    save_log
+else
+    echo "操作を中止しました。"
+fi
+
 for package in $packages; do
-    if display_versions; then
+    if display_versions $package; then
         read -p "$package をアップデートしますか？ (yes/no): " action
     else
         read -p "$package をインストールしますか？ (yes/no): " action
     fi
 
     if [ "$action" == "yes" ]; then
-        update_or_install_package
+        update_or_install_package $package
     else
         echo "$package の操作を中止しました。"
     fi
 done
-
-read -p "ログを保存しますか？ (yes/no): " save_log
-if [ "$save_log" == "yes" ]; then
-    save_log
-else
-    echo "操作を中止しました。"
-fi
